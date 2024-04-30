@@ -1,0 +1,1193 @@
+---
+title: "exercises for biostatistics 2"
+author: "Héctor Arribas Arias"
+runtime: shiny
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    keep_md: true
+    fig_caption: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, comment = NA)
+```
+
+# Load libraries necessary for the exercises
+
+```{r, echo=FALSE}
+suppressPackageStartupMessages({
+  library(ggplot2)
+  library(yarrr)
+  library(knitr)
+  library(carData)
+  library(car)
+  library(ggfortify)
+  library(tidyverse)
+  library(MASS)
+  library(Matrix)
+  library(lme4)
+  library(rstatix)
+  library(ggpubr)
+  library(dplyr)
+  library(lmtest)
+  library(ggstatsplot)
+  library(here)
+  library(shiny)
+})
+```
+
+
+ 2. In this exercise, we consider four data sets constructed by the British statistician Frank Anscombe.
+ Each data set consists of a response variable Y and an explanatory variable X.
+ 
+```{r, echo=TRUE}
+
+data(anscombe)
+``` 
+ 
+ After this, a data frame anscombe is available with the four variable pairs (x1, y1), (x2, y2), (x3, y3), and (x4, y4).
+ 
+ a) Display each of the 4 data sets as a scatter plot, draw in the regression line and comment on the results.
+ R hints: you can use the command par(mfrow = c(2, 2)) to get the four plots side-by-side;
+ to draw in the regression line you can use abline(lm(Y ˜ X)).
+ 
+```{r, echo=FALSE}
+
+# Base R visualization
+# Create a space for four plots
+par(mfrow=c(2,2))
+#loop over the data sets, plot them and create regression line
+for (i in 1:4){
+  
+  xi <- anscombe[, paste0("x", i)]
+  yi <- anscombe[, paste0("y", i)]
+  
+  plot(xi,yi,pch=16,main=paste("anscombe",i),xlab="x",ylab="y") # xlim=c(0,max(xi)+2) if you wnat the x axis to start at 0, 2 is just an arbitrary number
+  
+  lmi <- lm(yi ~ xi)
+  #add regression line in red
+  abline(lmi,col="firebrick")
+}
+```
+ 
+```{r knitr ex1_1 img,echo=FALSE}
+
+#Table image
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex1_1.png') 
+```
+ 
+ b) For the four models, compare the estimated values 0 (intercept), 1 (slope) and 2 (variance of
+ the residuals), as well as the "quality criterion" R2.
+ 
+ 
+```{r, echo=TRUE}
+
+#compare intercept,slope,variance,and R^2
+#create e,mpty dataframe
+compared_data <- data.frame(datasets=1:4,intercept=numeric(4),slope=numeric(4),variance=numeric(4),"R^2"=numeric(4))
+#loop over the number of nodels you have
+for (i in 1:4){
+  
+  xi <- anscombe[, paste0("x", i)]
+  yi <- anscombe[, paste0("y", i)]
+  lmi <- lm(yi ~ xi)
+  compared_data$intercept[i] <- lmi[[c(1,1)]]
+  compared_data$slope[i] <- lmi[[c(1,2)]]
+  compared_data$variance[i] <-  var(resid(lmi))
+  compared_data$R.2[i] <- summary(lmi)$adj.r.squared
+}
+#visualize comparison table
+compared_data
+```
+
+3.The file farm.dat contains the size A (in acres), the number of cows C and the income I (in $) of 20 farms in the US. 
+You find the data set on ILIAS.
+
+```{r,echo=TRUE}
+
+# Load the data
+data <- read.table("C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/Datasets/farmdat.txt",header = TRUE)
+```
+ 
+ a) Compute an ordinary linear regression of I versus C. Does the income depend on the number of
+ cows?
+ 
+```{r, echo=TRUE}
+
+summary(lm(data$Dollar ~ data$cows))
+
+#There appears to be a statistically significant relationship between the number of cows and income,
+#with each additional cow contributing significantly to the variation in income.
+#However,the income can only explain by 47.39% the number of cows, the income does not depend on the number of cows
+#correlation does not equal causation
+
+#model
+lmIC <- lm(cows ~ Dollar,data)
+
+#plot the model
+par(mfrow=c(1,1))
+plot(data$Dollar,data$cows,pch=16,xlab="income",ylab="Nº of cows")
+abline(lmIC,col="firebrick")
+ 
+```
+```{r knitr ex2_1 img,echo=FALSE}
+
+#Table image
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex2_1.png') 
+```
+
+
+
+ b) Give the confidence intervals for the expected income without any cows, with 20 cows, and with
+ C =8.85 cows.
+ 
+```{r,echo=TRUE}
+
+#plot confidence interval lines of 95%
+plot(data$Dollar,data$cows,pch=16,xlab="income",ylab="Nº of cows")
+abline(lmIC,col="firebrick")
+newx <- seq(min(data$Dollar),max(data$Dollar),length.out=100)
+preds <- predict(lmIC,newdata=data.frame(Dollar=newx),interval="confidence")
+lines(newx,preds[,3], lty="dashed", col="orange3",lwd=2)
+lines(newx,preds[,2],lty="dashed", col="orange3",lwd=2)
+
+#color the interior of the confidence interval with semitransparent color with library yarrr (explanation of transparent in exercise 5)
+polygon(c(rev(newx),newx),c(rev(preds[,2]),preds[,3]),col=yarrr::transparent("583", trans.val = .8),border=NA)
+
+
+# Calculate confidence intervals for coefficients
+coeff_intervals <- confint(lmIC) #95%
+print(coeff_intervals)
+
+# Calculate confidence intervals for predictions
+new_data <- data.frame(Dollar=c(0,8.85,20))
+pred_intervals <- predict(lmIC, newdata = new_data, interval = "confidence")
+#visualize it
+pred_intervals
+```
+ 
+```{r knitr ex2_2 img,echo=FALSE}
+
+#Table image
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex2_2.png') 
+```
+
+ c) Compute an ordinary linear regression of I versus A and a multiple linear regression of I versus
+ A and C. Also compute the correlation between A and C. Finally, based on your results, explain
+ the differences between the three regression models.
+ 
+```{r,echo=TRUE}
+
+corAC <- cor(data$acres,data$cows)
+corAI <- cor(data$acres,data$Dollar)
+```
+
+ 4. In this exercise, we again consider the air pollution data set presented in the lecture. In
+ a study on the contribution of air pollution to mortality, General Motors collected data from 60
+ US cities. The dependent variable is the age adjusted mortality (variable Mortality). The data
+ includes variables measuring demographic characteristics of the cities, variables measuring climate
+ characteristics, and variables recording the pollution potential of three different air pollutants.
+ 
+```{r,echo=TRUE}
+
+# Load the data
+air <- read.csv("C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/Datasets/airpollution.csv",header = TRUE)
+```
+ 
+ a) Get an overview of the data and account for possible problems. Which of the variables need to
+ be transformed?
+
+```{r,echo=TRUE} 
+
+#plot density plots to see which data need to be transformed
+#create layout for 15 plots
+par(mfrow=c(4,4))
+ncol(air)
+#remove all categories which are not numerical and cannot be plotted
+air_without_city <- air[,which(names(air)!="City")]
+# Loop over all columns to create the density plots
+for (i in 1:ncol(air_without_city)) {
+  if (is.numeric(air_without_city[, i])) {
+    par(mar = c(5, 5, 2, 2))
+    plot(density(air_without_city[, i]), main = names(air_without_city)[i])
+    grid()
+  } else {
+    cat("Column", names(air_without_city)[i], "contains non-numeric data. Skipping...\n")
+  }
+}
+
+#the categories which have a skewed density which are population, HC, NOx and S02 should be transformed, we can try with a log transformation
+
+#apply log transformation to necessary columns
+air_without_city[,c("Pop","HC","NOx","SO2")] <- apply(air_without_city[,c("Pop","HC","NOx","SO2")],2,log)
+
+# same with library tidyverse for learning purposes
+air_without_city_mutated <- mutate(air_without_city, 
+                                   across(c(Pop, HC, NOx, SO2), log))
+
+```
+ 
+```{r knitr ex4_1 img,echo=FALSE}
+
+#Table image
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex4_1.png') 
+```
+ 
+ b) Carry out a multiple linear regression containing all variables. Does the model fit well? Check
+ the residuals.
+ 
+```{r,echo=TRUE}
+
+#create model
+air.fit <- lm(Mortality ~ ., air_without_city)
+summary(air.fit)
+
+#check for assumptions
+#check tukey ascombe plot
+par(mfrow=c(1,1))
+plot(air.fit$residuals, air.fit$fitted.values,pch=16,xlab="residuals",ylab="fitted values", main="Tukey-Anscombe plot")
+#check qqplot
+qqPlot(air.fit$residuals,distribution="norm", main="qqplot")
+```
+ 
+```{r knitr ex4_2 img,echo=FALSE}
+
+#Table image
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex4_2.png') 
+``` 
+```{r knitr ex4_3 img,echo=FALSE}
+
+#Table image
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex4_3.png') 
+```
+ 
+ c) Now take all the non-significant variables out of the model and compute the regression again.
+ Compare your results to part b.).
+ 
+```{r,echo=TRUE}
+
+#stepAIC does it automatically, you can use it for nested and non nested models but it does not give you a p value AIC (AKAIK information criterium), with library MASS
+filtered_m <- stepAIC(air.fit,direction = "both") #the models are not nested, that is why you can use AIC, 
+summary(filtered_m)
+```
+
+5.On February 9, 2014, Swiss voters accepted the initiative “Against Mass Immigration”. In this exercise,
+ we will try to predict the acceptance in each canton based on goegraphic and demographic data.
+ 
+ The data set massimmigration.csv contains the following variables:
+ canton:       abbreviation of the canton
+ yes:          acceptance (fraction of “Yes” votes) in % (response variable)
+ area:         area in km2
+ inhabitants:  inhabitants of the canton
+ foreigners:   fraction of foreigners in %
+ 
+```{r,echo=TRUE}
+
+# Load the data
+data <- read.table("C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/Datasets/massimmigration.csv",header = TRUE)
+```
+ 
+ a) Plot acceptance versus the fraction of foreigners, and fit a linear model to the data. Does the
+ model fit well? Analyse the residuals.
+
+```{r,echo=TRUE}
+
+#plot model
+plot(data$foreigners,data$yes, pch=18,xaxs="i",xlab="Percentage of foreigners",ylab="acceptance",main="model",cex=1.5)
+lm_model <- lm(yes ~ foreigners,data)
+abline(lm_model,col="blue")
+
+summary(lm_model)
+#the model is really bad, R adjusted is only 0.23, which means only 23% of the variation in the response variable can be explained by the model
+```
+ 
+```{r knitr ex5_1 img,echo=FALSE}
+
+#Table image
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex5_1.png') 
+```
+
+ b) Plot a confidence band and prediction intervals into the plot of a), both for a confidence level of
+ 90%. What is the difference between the two?
+
+```{r,echo=TRUE}
+
+#plot confidence band
+plot(data$foreigners,data$yes, pch=18,xaxs="i",xlab="Percentage of foreigners",ylab="acceptance",main="model",cex=1.5)
+lm_model <- lm(yes ~ foreigners,data)
+abline(lm_model,col="blue")
+#create vector that goes along the x axis
+x_vect <- c(min(data$foreigners):max(data$foreigners))
+#predict the 90% confidence interval (confidence band) (vector that goes along the y axis)
+conf_band <- predict(lm_model,newdata = data.frame(foreigners=x_vect),interval = "confidence",level = 0.90)
+#plot it
+lines(x_vect,conf_band[,"lwr"],lty="dashed",col="red",lwd=2)
+lines(x_vect,conf_band[,"upr"],lty="dashed",col="red",lwd=2)
+
+#predict prediction interval and plot
+pred_int <- predict(lm_model,newdata = data.frame(foreigners=x_vect),interval = "prediction",level = 0.90)
+lines(x_vect,pred_int[,"lwr"],lty="dashed",col="forestgreen",lwd=2)
+lines(x_vect,pred_int[,"upr"],lty="dashed",col="forestgreen",lwd=2)
+
+#color in 90% predict interval in light transparent blue and 90% confidence interval in light grey
+#transparent number is the color you choose and trans.val is how transparent you want the value to be
+polygon(c(rev(x_vect),x_vect),c(rev(pred_int[,2]),pred_int[,3]),col=yarrr::transparent("580", trans.val = .95),border=NA)
+
+polygon(c(rev(x_vect),x_vect),c(rev(conf_band[,2]),conf_band[,3]),col=yarrr::transparent("584", trans.val = .6),border=NA) 
+
+#check for assumptions of model 
+#check tukey ascombe plot for randomly distributed residuals
+plot(lm_model$residuals, lm_model$fitted.values,pch=16,xlab="residuals",ylab="fitted values",main="Tukey-Ascombe plot")
+#check qqplot for normalilty of residuals with libraries car and carData
+qqPlot(lm_model$residuals,distribution="norm")
+```
+
+```{r knitr ex5_2 img,echo=FALSE}
+
+# linear model
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex5_2.png') 
+```
+
+```{r knitr ex5_3 img,echo=FALSE}
+
+# tukey anscombe plot
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex5_3.png') 
+```
+
+```{r knitr ex5_4 img,echo=FALSE}
+
+# qqplot
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex5_4.png') 
+```
+
+ c) Howwell does the fraction of foreigners explain the acceptance in the different cantons? Calculate
+ the coefficient of determination R2 and the F statistic “by hand”, i.e. only using the R functions
+ resid, fitted and mean. Check your results with the output of summary.
+
+```{r,echo=TRUE}
+
+# Extract residuals and fitted values from the model
+residuals <- resid(lm_model)
+fitted_values <- fitted(lm_model)
+
+# Calculate the mean of the dependent variable
+mean_y <- mean(data$y)
+
+# Calculate the total sum of squares (SST)
+sst <- sum((data$y - mean_y)^2)
+
+# Calculate the residual sum of squares (SSE)
+sse <- sum(residuals^2)
+
+# Calculate the explained sum of squares (SSR)
+ssr <- sum((fitted_values - mean_y)^2)
+
+# Calculate R-squared (coefficient of determination)
+r_squared <- ssr / sst
+
+# Calculate the number of observations
+n <- length(data$y)
+
+# Calculate the degrees of freedom for regression and residuals
+df_regression <- length(coefficients(lm_model)) - 1
+df_residual <- length(residuals) - df_regression - 1
+
+# Calculate the adjusted R-squared
+adjusted_r_squared <- 1 - ((1 - r_squared) * (n - 1) / (n - df_regression - 1))
+
+# Calculate the F-statistic
+f_statistic <- (ssr / df_regression) / (sse / df_residual)
+
+# Print the results
+r_squared
+adjusted_r_squared
+f_statistic
+
+# Compare to built-in R function
+summary(lm_model)
+
+```
+ 
+ d) Select the best linear model as follows:
+ 1. Add a variable density to the data set, defined as the number of inhabitants per area.
+ 2. Start with the full regression model.
+ 3. As long as there is an explanatory variable with a p-value above 5%:
+ • Remove the least significant variable.
+ • Keep the new model if the larger model is not significantly better based on an F-test.
+
+```{r,echo=TRUE}
+
+# add density
+data <- cbind(data, density=data$inhabitants/data$area)
+#remove categoric variable
+data_numeric <- data[,which(names(data)!="canton")] 
+data_numeric
+
+#create linear model with all variables
+complete_model <-lm(yes ~ ., data_numeric)
+summary(complete_model)
+
+#one by one
+complete_model_min_1 <- lm(yes ~ area + foreigners + density, data_numeric)
+summary(complete_model_min_1)
+anova(complete_model_min_1)
+
+complete_model_min_2 <- lm(yes ~ foreigners + density, data_numeric)
+summary(complete_model_min_2)
+anova(complete_model_min_2)
+
+#automatically with library MASS
+stepAIC(complete_model,direction = "both")
+
+#you can also do likelihood ratio test cause the models are nested with the library lmtest
+lmtest::lrtest(complete_model_min_1,complete_model_min_2)
+```
+
+6.Biologists studied the relationship between the length of a bullfrog and how far it can jump.
+ The resulting data set had 2 variables, length (body length, in mm) and jump (maximum leap
+ distance, in cm). The variables were fitted in a linear model the output of which is shown in the
+ following:
+ Call:
+ lm(formula = jump ~ length, data = bullfrog)
+ Residuals:
+ Min
+ 1Q Median
+ Max-34.864-5.206 5.589 11.799 21.120
+ 3Q
+ Coefficients:
+ Estimate Std. Error t value Pr(>|t|)
+ (Intercept) 51.7416
+ 59.5828
+ length
+ 0.3492
+ 0.3965
+ 0.868
+ 0.881
+ 0.408
+ 0.401
+ Residual standard error: 18.15 on 9 degrees of freedom
+ Multiple R-squared: 0.07933,
+ Adjusted R-squared:-0.02296
+ F-statistic: 0.7755 on 1 and 9 DF, p-value: 0.4014
+ 
+ a) Write down the linear regression model the biologists assumed.
+ 
+model assumptions, normality of the residuals.
+measured variable:length
+response variable: jump 
+yi = b1xi + b0 + Ei #if our residuals dont follow a normal distribution is a generalized linear model. 
+
+```{r,echo=TRUE}
+
+b1 <- 0.3492
+b0 <- 51.7416
+```
+
+ b) How many frogs were included in the study?
+
+The number of frogs included in the study were 9df + 1 = 10 frogs measured
+ 
+ c) Is the length of the frogs a good predictor for the maximum leap distance?
+
+no, there seems to be no crrelation between body length and jump length
+ 
+ d) Fill out an ANOVA table for the model based on the R output above.
+
+```{r,echo=TRUE}
+
+ANOVA_table <- data.frame("Source of variation"=c("regression","errors/resid","total around global mean"),"df(degrees of freedom)"=c(1,9,10),"SS(sum of squares)"=c(255.47,2964.78,3220.35),"MS(mean square)"=c(255.47,329.42,NA))
+
+print(ANOVA_table)
+```
+
+7. A researcher collected daffodils from four sides of a building and from an open area nearby.
+ She wondered whether the average stem length of a daffodil depends on its location.
+ 
+```{r,echo=TRUE}
+
+#Load the data
+daff <- read.csv("C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/Datasets/daffodils.csv",header = TRUE)
+```
+
+ a) State the null hypothesis of an ANOVA model for this problem in words and as a formula.
+
+Explanation:
+the null hypothesis is that all coefficients in the model are 0, and the output cabn be explained simply by the inter-group mean+error term. This is represented by Y_i = \mu + \alpha_1x ... \alpha_5x + E_ij, where all coefficients \alpha are zero
+b. It appears that the majority of the data points from te 'opne side' are lower than the approximate inter-group mean -this sample may significantly differ,
+but would require hypothesis testing to validate.
+
+ b) A boxplot of the data looks as follows:
+ Based on the boxplot, does it appear that the null hypothesis is true?
+ 
+```{r knitr boxplot, echo=FALSE}
+
+# Boxplot image
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/explanatory_images/exercise 7 image.png')
+```
+ we can also plot the data ourselves
+ 
+```{r, echo=TRUE}
+
+#multiple boxplots depending on the side
+#convert categorical variable to factor so we can make different groups and plot them
+daff$Side <- as.factor(daff$Side) 
+levels(daff$Side)
+plot(Length ~ Side, data = daff,col=c("royalblue","firebrick","green4","orange3","pink"),ylab="length (cm)",main="Length of daffodils depending on location",pch=16)
+
+#or in horizontal
+par(mar=c(5,5,4,1))
+plot(Length ~ Side, data = daff,col=c("royalblue","firebrick","green4","orange3","pink"),ylab="length (cm)",main="Length of daffodils depending on location",pch=16,horizontal=TRUE,las=1)
+```
+
+```{r knitr ex7_1 img,echo=FALSE}
+
+#box plot image
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex7_1.png') 
+```
+
+ c) Fit an ANOVA model to the data and test the null hypothesis from a) on a significance level of
+ 10%.
+ 
+```{r,echo=TRUE}
+
+# Model
+daff_loc.fit <- lm(Length ~ Side, daff)
+summary(daff_loc.fit)
+anova(daff_loc.fit) #there is a significant difference in the length
+```
+ 
+ d) Does the ANOVA model fit well to the data? Perform a residual analysis.
+
+```{r,echo=TRUE}
+
+# Residual analysis
+# Check tukey ascombe plot
+par(mfrow=c(1,1))
+plot(daff_loc.fit$fitted.values,daff_loc.fit$residuals,pch=16,xlab="residuals",ylab="fitted values",main="Tukey-Ascombe plot")
+# Check qqplot
+qqPlot(daff_loc.fit$residuals,distribution="norm",ylab="Empirical quantiles", main="qqplot")
+```
+ 
+ The ANOVA model does fit the data well
+
+```{r knitr ex7_2 img,echo=FALSE}
+
+#Tukey anscombe
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex7_2.png') 
+```
+
+```{r knitr ex7_3 img,echo=FALSE}
+
+#qqplot
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex7_3.png') 
+```
+
+ e) Which locations (sides of the building and open area) are not significantly different on a 5% level?
+ Use Bonferroni adjusted pairwise t-tests
+
+```{r,echo=TRUE}
+
+pair_t <- pairwise.t.test(daff_loc.fit$model$Length,daff_loc.fit$model$Side,p.adjust.method = "bonferroni", level=0.95)
+# Visualize it 
+print(pair_t)
+
+#use ggplot to plot the boxplots with the pairwise comparison signiricance level with packages tidyverse, rstatix, ggpubr
+#run pairwise t test with packages, and tidyverse syntax
+stat.test <- daff %>%
+  pairwise_t_test(
+    Length ~ Side, paired = TRUE,
+    p.adjust.method = "bonferroni"
+  )
+stat.test
+
+# Create the plot
+myplot <- ggboxplot(daff_loc.fit, x = "Side", y = "Length", add = "point",fill=c("firebrick"))
+myplot
+# Add statistical test p-values
+stat.test <- stat.test %>% add_xy_position(x = "Side")
+myplot + stat_pvalue_manual(stat.test, label = "p.adj.signif")
+```
+ 
+```{r knitr ex7_4 img,echo=FALSE}
+
+# Boxplot
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex7_4.png') 
+```
+
+8. A researcher studied the flexibility of women after taking different sports courses. 
+The flexibility was measured by the spinal extension, a measure of how far the women could bend her back.
+ The ANOVA table of the data set looks as follows:
+ 
+ Analysis of Variance Table
+ Response: SpineExtension
+ Df Sum Sq Mean Sq F value Pr(>F)
+ Activity
+ 2 7.0357 3.5178 6.0667 0.006882 **
+ Residuals 26 15.0764 0.5799--
+Signif. codes:
+ 0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1´
+ 
+ a) How many groups (sports activities) were in the experiment? How many women participated?
+
+2 + 2 
+26 +2
+
+ b) What can you say on a 5% level about the null hypothesis that all sport courses lead to the same flexibility?
+
+It is sgnificantly different, not all sports lead to the same flexibility
+
+ c) What is the pooled standard deviation, spool?
+ 
+```{r, echo=TRUE}
+
+sqrt(0.5799)
+#It's the variation within the groups
+```
+
+9. In a study of the dietary treatment of anemia in cattle, 144 cows were randomly divided
+ into four treatment groups A, B, C, and D; A was the control group. After a year of treatment,
+ blood samples were drawn and assayed for selenium. The following table shows the mean selenium
+ concentrations in gdl. The MS(within) from the ANOVA was 2071.
+ 
+```{r knitr table,echo=FALSE}
+
+#Table image
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/explanatory_images/table exercise 9.png')
+```
+ 
+ Compute three Bonferroni-adjusted confidence intervals comparing diets B, C, and D to the control
+ (diet A) for a FWER of = 005. Which comparison-wise significance level do you have to use to
+ calculate the confidence intervals?
+
+```{r,echo=TRUE}
+
+ #For the bonferroni correction we need to divide the alpha by the number of independent groups 4-1=3
+#data
+data <- data.frame("Group"=c("A","B","C","D"),"mean"=c(0.8,5.4,6.2,5.0),"ni"=c(36,36,36,36))
+#create empty dataframe for storage of the confidence interval we will calculate
+confidence_interval = data.frame("group"=c("B","C","D"),conf_under=c(NA,NA,NA),conf_over=c(NA,NA,NA))
+
+#create functions to calculate the confidence intervals with bonferroni correction
+#bonferroni correction you divide the alpha over the number of independent groups 
+calc_conf_under_bonf_correct <- function(x,indep_groups=3){
+  return((x - qnorm(1 - (0.05/indep_groups))*(sqrt(2.071)/(sqrt(36)))))
+}
+
+calc_conf_over_bonf_correct <- function(x,indep_groups=3){
+  return((x + qnorm(1 - (0.05/indep_groups))*(sqrt(2.071)/(sqrt(36)))))
+}
+
+#calculate confidence intervals for B C and D (we exclude the first row as it has A which we dont need)
+confidence_interval$conf_under <- lapply(data$mean[2-4],calc_conf_under_bonf_correct)
+confidence_interval$conf_over <- lapply(data$mean[2-4],calc_conf_over_bonf_correct)
+
+#round the values
+confidence_interval$conf_under <- lapply(confidence_interval$conf_under,round,3)
+confidence_interval$conf_over <- lapply(confidence_interval$conf_over,round,3)
+
+#visualize
+print(confidence_interval)
+```
+
+Answer
+
+Since not one confidence interval included the control group’s mean (0.8),
+we can conclude with 95% confidence that all treatments significantly 
+heigthened the mean selenium concentration in the cows’ blood.
+
+10.  Researchers measured the yield of 5 crop species treated with 4 fertilizers.
+ a) Read in the data set and draw an interaction plot.
+ R hint: since the factor levels are not encoded as strings, you first have to explicitely convert the
+ variables CropSpecies and Fertilizer to factors.
+ 
+```{r, echo=TRUE}
+
+#load the data
+df <- read.table("C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/Datasets/fertilizerdat.txt", sep = "", header = TRUE)
+print(df)
+
+print(paste("The dimensions of the data are",dim(df)[1],dim(df)[2]))
+#convert to factors
+df$CropSpecies = as.numeric(df$CropSpecies)
+df$Fertilizer = as.numeric(df$Fertilizer)
+
+#create interaction plot
+interaction.plot(df$Fertilizer, df$CropSpecies, df$Yield, col=c("red","blue","green","violet","black"),lwd=2,type = "b", legend = TRUE, xlab="Fertilizer", ylab="Yield Mean", main="Crop yield depending on fertilizer types (Interaction plot)")
+
+```
+ 
+```{r knitr ex10_1 img,echo=FALSE}
+
+#Table image
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex10_1.png') 
+```
+ 
+ b) Fit an ANOVA model without interaction to the data set. Analyse the residuals. Does the model
+ fit well? If not, can you think of a transformation that could make the fit better?
+ 
+```{r,echo=TRUE}
+
+#create model
+model <- lm(Yield ~ Fertilizer + CropSpecies, data = df)
+
+#check model assumptions
+par(mfrow = c(1, 2), cex = 1.5)
+plot(fitted(model), resid(model),col="black",pch=18,
+     xlab = "Fitted values", ylab = "Residuals", 
+     main = "Tukey-Anscombe plot",
+     cex.main=0.8)
+
+#with library car
+qqPlot(resid(model), dist = "norm",cex=1,
+       mean = mean(resid(model)), sd = sd(resid(model)),
+       xlab = "Theoretical quantiles", ylab = "Empirical quantiles")
+# Adjust the title font size
+title(main = "Q-Q plot of residuals", cex.main = 0.8)
+
+# Transform the data
+model_fertilizer_int <- lm(log(Yield) ~ Fertilizer * CropSpecies,data=df)
+```
+
+```{r knitr ex10_2 img,echo=FALSE}
+
+# checking assumptions
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex10_2.png') 
+```
+
+When we look at the results, we do not see the random cloud of points in the Tukey Anscombe plot
+indicating the data might be skewed, and we can also see that in the qqplot
+
+So lets try transforming the data, either log transform, sqrt transform, etc. So lets try transforming the data, either log transform, sqrt transform, etc.
+
+```{r, dplyr, echo=TRUE}
+
+df <- mutate(df, logYield = log(df$Yield))
+df <- mutate(df, square.root.yield = sqrt(df$Yield))
+
+
+model <- lm(logYield ~ Fertilizer + CropSpecies, data = df)
+
+par(mfrow = c(1, 2), cex = 1.5)
+plot(fitted(model), resid(model),col="green",pch=18,
+     xlab = "Fitted values", ylab = "Residuals", main = "Tukey-Anscombe plot")
+
+qqPlot(resid(model), dist = "norm",cex=1,
+       mean = mean(resid(model)), sd = sd(resid(model)),
+       xlab = "Theoretical quantiles", ylab = "Empirical quantiles",
+       main = "Q-Q plot of residuals")
+
+model_2 <- lm(square.root.yield ~ Fertilizer + CropSpecies, data = df)
+
+par(mfrow = c(1, 2), cex = 1.5)
+plot(fitted(model_2), resid(model_2),col="green",pch=18,
+     xlab = "Fitted values", ylab = "Residuals", main = "Tukey-Anscombe plot")
+
+qqPlot(resid(model_2), dist = "norm",cex=1,
+       mean = mean(resid(model_2)), sd = sd(resid(model_2)),
+       xlab = "Theoretical quantiles", ylab = "Empirical quantiles",
+       main = "Q-Q plot of residuals")
+
+par(mfrow = c(2, 2), cex = 1)
+plot(fitted(model), resid(model),col="green",pch=18,
+     xlab = "Fitted values", ylab = "Residuals", main = "Log Tukey-Anscombe plot")
+
+qqPlot(resid(model), dist = "norm",cex=1,
+       mean = mean(resid(model)), sd = sd(resid(model)),
+       xlab = "Theoretical quantiles", ylab = "Empirical quantiles",
+       main = "Log Q-Q plot of residuals")
+
+plot(fitted(model_2), resid(model_2),col="213",pch=18,
+     xlab = "Fitted values", ylab = "Residuals", main = "Sqaure Root Tukey-Anscombe plot")
+
+qqPlot(resid(model_2), dist = "norm",cex=1,
+       mean = mean(resid(model_2)), sd = sd(resid(model_2)),
+       xlab = "Theoretical quantiles", ylab = "Empirical quantiles",
+       main = "Square Root Q-Q plot of residuals")
+
+# It appears the log transformaton does a better job than the square root transformation
+
+par(mfrow = c(1, 2), cex = 1)
+interaction.plot(df$Fertilizer, df$CropSpecies, df$logYield, col=c("red","blue","green","violet","black"),lwd=2,type = "b", legend = FALSE, xlab="Fertilizer", ylab="Yield Mean", main="Log Transformation")
+interaction.plot(df$Fertilizer, df$CropSpecies, df$square.root.yield, col=c("red","blue","green","violet","black"),lwd=2,type = "b", legend = FALSE, xlab="Fertilizer", ylab="Yield Mean", main="Sqaure Root Transformation")
+```
+
+```{r knitr ex10_3 img,echo=FALSE}
+
+# Interaction plots
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex10_3.png') 
+```
+
+ c) Add an interaction term to the model from task b). Is there a significant interaction?
+
+```{r, echo=TRUE}
+
+names(df)
+model_interaction <- lm(logYield~Fertilizer * CropSpecies, data = df)
+model <- lm(logYield ~ Fertilizer + CropSpecies, data = df)
+anova(model_interaction, model)
+
+#    We can see that the model is not yet significant
+#    This means there is no evidence for keeping the more complex model
+
+summary(model_interaction)
+summary(model)
+
+
+simple_model <- lm(formula = logYield ~ CropSpecies, data = df)
+summary(simple_model)
+
+# lets do an anova between the models
+anova(simple_model, model)
+
+```
+It's highly significant, suggesting that we should keep the more complicated model
+ 
+ d) Beginning from the model from task c), perform a model selection by remove non-significant
+ terms. In which order do you have to test the terms? With which model do you end up?
+ 
+??
+
+11. A scientist is interested in how genotype of a strawberry plant affects fruit yield. There
+ are three levels of genotype (AA, AB, BB) and ten plots of land, three plants per plot. Each of the
+ three genotypes is present in each plot.
+ 
+```{r, echo=TRUE}
+# Load the data
+data <- read.table("C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/Datasets/strawbdat.txt", header = TRUE)
+```
+ 
+ a) Perform an ANOVA, assuming one-way randomized block design.
+ 
+```{r,echo=TRUE}
+
+#to do randomized block design 
+data$land <- as.factor(data$land)
+strawGenYi.fit <- lm(yield ~ gtype + land,data)
+
+summary(strawGenYi.fit)
+
+# look at the assumptions of the model
+  par(mfrow=c(1,2))
+  #Tukey Ascombe plot
+  plot(fitted(strawGenYi.fit),residuals(strawGenYi.fit),
+       pch=15, 
+       xlab = "Theoretical quantiles", 
+       ylab="Empirical quantiles", 
+       main= "Tukey-Anscombe plot")
+  #qqplot
+  qqPlot(
+    resid(strawGenYi.fit),
+    dist = "norm",
+    mean = mean(resid(strawGenYi.fit)),
+    sd = sd(resid(strawGenYi.fit)),
+    xlab = "Theoretical quantiles",
+    ylab = "Empirical quantiles",
+    main = "QQplot of residuals")
+```
+
+```{r knitr ex11_1 img,echo=FALSE}
+
+# check assumptions
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex11_1.png') 
+```
+
+```{r,echo=TRUE}
+
+#visualization
+#base R 
+data$gtype <- as.factor(data$gtype)
+boxplot(yield ~ gtype, 
+        data = data, 
+        col = c("red", "green4", "royalblue"), 
+        xlab = "Genotype", 
+        ylab = "Yield", 
+        main = "Boxplot of Yield by Genotype",
+        pch=16)
+
+# In ggplot
+  ggplot(data, aes(y = yield, x = gtype, fill = gtype)) + 
+    geom_boxplot() + 
+    labs(x = "Genotype", y = "Yield", title = "Boxplot of Yield by Genotype") +
+    scale_fill_manual(values = c("red", "green4", "royalblue")) +
+    theme_minimal()
+
+
+# same two plots but x axis is land now
+boxplot(yield ~ land,
+        data=data,
+        col = rainbow(length(unique(data$land))),
+        xlab = "Genotype", 
+        ylab = "Yield", 
+        main = "Boxplot of Yield by Land",
+        pch=16)
+#in ggplot      
+ggplot(data, aes(x = land, y = yield, fill = land)) +
+  geom_boxplot() +
+  scale_fill_manual(values = rainbow(length(unique(data$land)))) +
+  labs(x = "Genotype", y = "Yield", title = "Boxplot of Yield by land") +
+  theme_minimal()
+```
+
+```{r knitr ex11_2 img,echo=FALSE}
+
+# boxplot
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex11_2.png') 
+```
+
+```{r, echo=TRUE}
+
+#-------------- Fancy plot with box plot and violin plot--------------
+
+# With libraries ggstatsplot, tidyverse and here
+# Assuming 'data' is your data frame
+# Filter out missing values before plotting
+data_filtered <- drop_na(data, gtype, yield)
+
+plt <- ggbetweenstats(
+  data = data_filtered,
+  x = gtype,
+  y = yield
+)
+
+# Add labels and title
+plt <- plt + 
+  labs(
+    x = "Genotype",
+    y = "Fruit yield",
+    title = "Fruit yield by genotype"
+  ) + 
+  # Customizations
+  theme(
+    # This is the new default font in the plot
+    text = element_text(family = "Roboto", size = 8, color = "black"),
+    plot.title = element_text(
+      family = "Lobster Two", 
+      size = 20,
+      face = "bold",
+      color = "#2a475e"
+    ),
+    # Statistical annotations below the main title
+    plot.subtitle = element_text(
+      family = "Roboto", 
+      size = 15, 
+      face = "bold",
+      color="#1b2838"
+    ),
+    plot.title.position = "plot", # slightly different from default
+    axis.text = element_text(size = 10, color = "black"),
+    axis.title = element_text(size = 12),
+    axis.ticks = element_blank(),
+    axis.line = element_line(colour = "grey50"),
+    panel.grid = element_line(color = "#b4aea9"),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_line(linetype = "dashed"),
+    panel.background = element_rect(fill = "#fbf9f4", color = "#fbf9f4"),
+    plot.background = element_rect(fill = "#fbf9f0", color = "#fbf9f4")
+  )
+
+# Print the plot
+print(plt)
+```
+
+```{r knitr ex11_3 img,echo=FALSE}
+
+#Table image
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex11_3.png') 
+```
+
+```{r,echo=TRUE}
+
+# perform an anova
+anova(strawGenYi.fit)
+```
+ 
+ b) Repeat the analysis of variance without taking into account land effects.
+ 
+```{r, echo=TRUE}
+
+strawGenYi_noLand.fit <- lm(yield ~ gtype,data)
+summary(strawGenYi_noLand.fit)
+anova(strawGenYi_noLand.fit)
+```
+ 
+ c) Compare the results in a) and b). Why are the degrees of freedom different? Which result would
+ you use?
+ 
+```{r, echo=TRUE}
+
+#compare the two models
+anova(strawGenYi_noLand.fit,strawGenYi.fit)
+
+AIC(strawGenYi_noLand.fit,strawGenYi.fit)
+```
+
+12. The Dutch coastal institute RIKZ measured the species richness at different beaches of
+ the Dutch coast. The data set is available as RIKZ.txt in ILIAS and has the following variables:
+ 
+ Sample:      sample ID
+ Richness:    number of species found in a test area
+ Exposure:    ordinal variable determining exposure of site, composed of different elements
+ NAP:         height of sampling station relative to Normaal Amsterdams Peil mean sea level
+ Beach:       index of beach
+ 
+ The aim of this exercise is to predict species richness with the explanatory variables.
+ 
+```{r, echo=TRUE}
+# Load data
+rikz <- read.table("C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/Datasets/RIKZ.txt", header = TRUE, sep = "\t")
+```
+ 
+ a) Read in the data set with R. Look at the structure of the data frame you get. Do you need some
+ manual corrections to get the data in the right format?
+ 
+```{r, echo=TRUE}
+#the sample numbering does not provide important information (regarding species richeness)
+rikz$Sample <- NULL
+
+# beach can/should be grouped as a factor, since we are investigating them
+rikz$Beach <- factor(rikz$Beach)
+
+#exposure is not factorized, since it contains value invormation
+
+str(rikz)
+```
+ 
+ b) Fit a linear regression model using all explanatory variables. Look at the summary output of
+ your fit, and analyse the residuals. Which problems do you see? How could you solve them?
+
+```{r, echo=TRUE}
+
+rikz_fit <- lm(formula = Richness ~ ., data = rikz)
+par(mfrow=c(1,2),cex=0.75)
+plot(fitted(rikz_fit), resid(rikz_fit),xlab = "Fitted values", ylab = "Residuals", main = "Tukey-Anscombe plot")
+qqPlot(resid(rikz_fit), dist = "norm",mean = mean(resid(rikz_fit)), sd = sd(resid(rikz_fit)),xlab = "Theoretical quantiles", ylab = "Empirical quantiles",main = "Q-Q plot of residuals")
+```
+
+```{r knitr ex12_1 img,echo=FALSE}
+
+# check assumptions
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex12_1.png') 
+``` 
+
+ c) Try to improve the quality of your model from task b) by transforming some of the variables in
+ the RIKZ data set. Redo the model fit with the transformed variables. Does the model fit better
+ now?
+
+```{r, echo=TRUE}
+
+#The classic: log-transform
+#We get Infinity values for log-transform (we have 0s atsamples 24, 40, 44)
+#rikz_fit1 <- lm(log(Richness) ~ ., data = rikz)
+rikz_fit1 <- lm(log(0.1+Richness) ~ ., data = rikz)
+plot(fitted(rikz_fit1), resid(rikz_fit1),xlab = "Fitted values", ylab = "Residuals", main = "Tukey-Anscombe plot")
+qqPlot(resid(rikz_fit), dist = "norm",mean = mean(resid(rikz_fit1)), sd = sd(resid(rikz_fit1)),xlab = "Theoretical quantiles", ylab = "Empirical quantiles",main = "Q-Q plot of residuals")
+
+# slight shift in tukey-anscombe to the top
+# try number 2: square-root
+rikz_fit2 <- lm(sqrt(Richness) ~ ., data = rikz)
+plot(fitted(rikz_fit2), resid(rikz_fit2),xlab = "Fitted values", ylab = "Residuals", main = "Tukey-Anscombe plot")
+qqPlot(resid(rikz_fit), dist = "norm",mean = mean(resid(rikz_fit2)), sd = sd(resid(rikz_fit2)),xlab = "Theoretical quantiles", ylab = "Empirical quantiles",main = "Q-Q plot of residuals")
+```
+
+```{r knitr ex12_2 img,echo=FALSE}
+
+# check assumptions log transform
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex12_2.png') 
+``` 
+
+```{r knitr ex12_3 img,echo=FALSE}
+
+# check assumptions square root
+knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex12_3.png') 
+``` 
+
+Tukey-Anscombe is a little bit more spread out for square compared to log
+QQ-Plot for log.transform looks better
+
+ d) Continue with the transformation you chose in c). Perform model selection by iteratively removing
+ explanatory variables. Which model do you end up with?
+
+```{r, echo=TRUE}
+
+#stepAIC for model selection
+rikz_bw <- stepAIC(rikz_fit2, direction = "backward", trace = 0)
+summary(rikz_bw)
+```
+ 
+13.Below, you find a list of explanatory variables that could appear in biological studies. For
+ each of them, decide wether it makes more sense to model them as fixed or as random, and give a
+ short explanation.
+ 
+ 1. The index of a patient (subject) in a medical study. For each of the subjects, different physiological
+ quantities were measured in order to predict the response to a certain drug.
+ 
+ Fixed
+ 
+ 2. The index of a biological replicate in a gene expression study, in which different cells were grown
+ from the same strain of yeast.
+ 
+ Random
+ 
+ 3. The yeast strain in a gene expression study, in which cells from 5 different yeast strains were
+ compared.
+ 
+ Fixed
+ 
+ 4. The type of a machine used for sequencing a virus genome in a study which compares sequencing
+ errors produced by different technologies and at different parts of the genome.
+ 
+ Random
+ 
+ 5. The litter a rat in a behavioural study comes from.
+ 
+ Random
+ 
+14. The data set oxboys.csv (available on ILIAS) consists of the heights of 26 boys from
+ Oxford, each measured on 9 different occasions (at different ages). The data set consists of the
+ following variables:
+ 
+ subject:   ID of the boys
+ age:       centered age
+ height:    height in cm
+ occasion:  index of measurement for each boy
+ 
+ a) Plot the height of the boys against the age. Fit a linear model to the data (ignoring the subjects),
+ and draw the regression line into the plot. Is the linear model appropriate?
+ 
+ b) How much of the variance can be explained by the regression? Determine the R2 value (from an
+ R output).
+ 
+ c) Fit a random intercept model to the data set, using subject as the random effect. Again, plot
+ the height vs. the age, and add the 26 regression lines for the different boys to the plot.
+ 
+ d) Now, fit a random intercept and slope model to the data set, and plot the individual regression
+ lines over the data points. Do you think the random slope gives better fits to the data?
+ 
+ e) Validate the quality of the random intercept and slope model form d) with a Tukey-Anscombe
+ and a Q-Q plot of the residuals. Does the model fit well?
+ 
+ f) The summary() function does not output an R2 value for a mixed effects model, as opposed to
+ fixed effects models. Calculate the R2 value for the model in d) “by hand” (see Exercise 5.c).
+ Compare it to the R2 value of the fixed effects model from b), and explain the difference.
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
