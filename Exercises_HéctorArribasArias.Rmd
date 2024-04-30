@@ -74,7 +74,7 @@ for (i in 1:4){
 ```{r knitr ex1_1 img,echo=FALSE}
 
 #Table image
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex1_1.png') 
+knitr::include_graphics("./plots/ex1_1.png") 
 ```
  
  b) For the four models, compare the estimated values 0 (intercept), 1 (slope) and 2 (variance of
@@ -107,7 +107,7 @@ You find the data set on ILIAS.
 ```{r,echo=TRUE}
 
 # Load the data
-data <- read.table("C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/Datasets/farmdat.txt",header = TRUE)
+data <- read.table("./Datasets/farmdat.txt",header = TRUE)
 ```
  
  a) Compute an ordinary linear regression of I versus C. Does the income depend on the number of
@@ -131,10 +131,11 @@ plot(data$Dollar,data$cows,pch=16,xlab="income",ylab="Nº of cows")
 abline(lmIC,col="firebrick")
  
 ```
+
 ```{r knitr ex2_1 img,echo=FALSE}
 
 #Table image
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex2_1.png') 
+knitr::include_graphics('./plots/ex2_1.png') 
 ```
 
 
@@ -170,7 +171,7 @@ pred_intervals
 ```{r knitr ex2_2 img,echo=FALSE}
 
 #Table image
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex2_2.png') 
+knitr::include_graphics('./plots/ex2_2.png') 
 ```
 
  c) Compute an ordinary linear regression of I versus A and a multiple linear regression of I versus
@@ -192,7 +193,7 @@ corAI <- cor(data$acres,data$Dollar)
 ```{r,echo=TRUE}
 
 # Load the data
-air <- read.csv("C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/Datasets/airpollution.csv",header = TRUE)
+air <- read.csv("./Datasets/airpollution.csv",header = TRUE)
 ```
  
  a) Get an overview of the data and account for possible problems. Which of the variables need to
@@ -231,7 +232,7 @@ air_without_city_mutated <- mutate(air_without_city,
 ```{r knitr ex4_1 img,echo=FALSE}
 
 #Table image
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex4_1.png') 
+knitr::include_graphics('./plots/ex4_1.png') 
 ```
  
  b) Carry out a multiple linear regression containing all variables. Does the model fit well? Check
@@ -254,12 +255,13 @@ qqPlot(air.fit$residuals,distribution="norm", main="qqplot")
 ```{r knitr ex4_2 img,echo=FALSE}
 
 #Table image
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex4_2.png') 
+knitr::include_graphics('./plots/ex4_2.png') 
 ``` 
+
 ```{r knitr ex4_3 img,echo=FALSE}
 
 #Table image
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex4_3.png') 
+knitr::include_graphics('./plots/ex4_3.png') 
 ```
  
  c) Now take all the non-significant variables out of the model and compute the regression again.
@@ -285,7 +287,7 @@ summary(filtered_m)
 ```{r,echo=TRUE}
 
 # Load the data
-data <- read.table("C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/Datasets/massimmigration.csv",header = TRUE)
+data <- read.table("./Datasets/massimmigration.csv",header = TRUE)
 ```
  
  a) Plot acceptance versus the fraction of foreigners, and fit a linear model to the data. Does the
@@ -305,7 +307,7 @@ summary(lm_model)
 ```{r knitr ex5_1 img,echo=FALSE}
 
 #Table image
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex5_1.png') 
+knitr::include_graphics('./plots/ex5_1.png') 
 ```
 
  b) Plot a confidence band and prediction intervals into the plot of a), both for a confidence level of
@@ -346,19 +348,19 @@ qqPlot(lm_model$residuals,distribution="norm")
 ```{r knitr ex5_2 img,echo=FALSE}
 
 # linear model
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex5_2.png') 
+knitr::include_graphics('./plots/ex5_2.png') 
 ```
 
 ```{r knitr ex5_3 img,echo=FALSE}
 
 # tukey anscombe plot
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex5_3.png') 
+knitr::include_graphics('./plots/ex5_3.png') 
 ```
 
 ```{r knitr ex5_4 img,echo=FALSE}
 
 # qqplot
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex5_4.png') 
+knitr::include_graphics('./plots/ex5_4.png') 
 ```
 
  c) Howwell does the fraction of foreigners explain the acceptance in the different cantons? Calculate
@@ -507,7 +509,7 @@ print(ANOVA_table)
 ```{r,echo=TRUE}
 
 #Load the data
-daff <- read.csv("C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/Datasets/daffodils.csv",header = TRUE)
+daff <- read.csv("./Datasets/daffodils.csv",header = TRUE)
 ```
 
  a) State the null hypothesis of an ANOVA model for this problem in words and as a formula.
@@ -523,7 +525,7 @@ but would require hypothesis testing to validate.
 ```{r knitr boxplot, echo=FALSE}
 
 # Boxplot image
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/explanatory_images/exercise 7 image.png')
+knitr::include_graphics('./explanatory_images/exercise 7 image.png')
 ```
  we can also plot the data ourselves
  
@@ -543,7 +545,7 @@ plot(Length ~ Side, data = daff,col=c("royalblue","firebrick","green4","orange3"
 ```{r knitr ex7_1 img,echo=FALSE}
 
 #box plot image
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex7_1.png') 
+knitr::include_graphics('./plots/ex7_1.png') 
 ```
 
  c) Fit an ANOVA model to the data and test the null hypothesis from a) on a significance level of
@@ -574,13 +576,13 @@ qqPlot(daff_loc.fit$residuals,distribution="norm",ylab="Empirical quantiles", ma
 ```{r knitr ex7_2 img,echo=FALSE}
 
 #Tukey anscombe
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex7_2.png') 
+knitr::include_graphics('./plots/ex7_2.png') 
 ```
 
 ```{r knitr ex7_3 img,echo=FALSE}
 
 #qqplot
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex7_3.png') 
+knitr::include_graphics('./plots/ex7_3.png') 
 ```
 
  e) Which locations (sides of the building and open area) are not significantly different on a 5% level?
@@ -612,7 +614,7 @@ myplot + stat_pvalue_manual(stat.test, label = "p.adj.signif")
 ```{r knitr ex7_4 img,echo=FALSE}
 
 # Boxplot
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex7_4.png') 
+knitr::include_graphics('./plots/ex7_4.png') 
 ```
 
 8. A researcher studied the flexibility of women after taking different sports courses. 
@@ -653,7 +655,7 @@ sqrt(0.5799)
 ```{r knitr table,echo=FALSE}
 
 #Table image
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/explanatory_images/table exercise 9.png')
+knitr::include_graphics('./explanatory_images/table exercise 9.png')
 ```
  
  Compute three Bonferroni-adjusted confidence intervals comparing diets B, C, and D to the control
@@ -704,7 +706,7 @@ heigthened the mean selenium concentration in the cows’ blood.
 ```{r, echo=TRUE}
 
 #load the data
-df <- read.table("C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/Datasets/fertilizerdat.txt", sep = "", header = TRUE)
+df <- read.table("./Datasets/fertilizerdat.txt", sep = "", header = TRUE)
 print(df)
 
 print(paste("The dimensions of the data are",dim(df)[1],dim(df)[2]))
@@ -720,7 +722,7 @@ interaction.plot(df$Fertilizer, df$CropSpecies, df$Yield, col=c("red","blue","gr
 ```{r knitr ex10_1 img,echo=FALSE}
 
 #Table image
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex10_1.png') 
+knitr::include_graphics('./plots/ex10_1.png') 
 ```
  
  b) Fit an ANOVA model without interaction to the data set. Analyse the residuals. Does the model
@@ -752,7 +754,7 @@ model_fertilizer_int <- lm(log(Yield) ~ Fertilizer * CropSpecies,data=df)
 ```{r knitr ex10_2 img,echo=FALSE}
 
 # checking assumptions
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex10_2.png') 
+knitr::include_graphics('./plots/ex10_2.png') 
 ```
 
 When we look at the results, we do not see the random cloud of points in the Tukey Anscombe plot
@@ -815,7 +817,7 @@ interaction.plot(df$Fertilizer, df$CropSpecies, df$square.root.yield, col=c("red
 ```{r knitr ex10_3 img,echo=FALSE}
 
 # Interaction plots
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex10_3.png') 
+knitr::include_graphics('./plots/ex10_3.png') 
 ```
 
  c) Add an interaction term to the model from task b). Is there a significant interaction?
@@ -854,7 +856,7 @@ It's highly significant, suggesting that we should keep the more complicated mod
  
 ```{r, echo=TRUE}
 # Load the data
-data <- read.table("C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/Datasets/strawbdat.txt", header = TRUE)
+data <- read.table("./Datasets/strawbdat.txt", header = TRUE)
 ```
  
  a) Perform an ANOVA, assuming one-way randomized block design.
@@ -889,7 +891,7 @@ summary(strawGenYi.fit)
 ```{r knitr ex11_1 img,echo=FALSE}
 
 # check assumptions
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex11_1.png') 
+knitr::include_graphics('./plots/ex11_1.png') 
 ```
 
 ```{r,echo=TRUE}
@@ -932,7 +934,7 @@ ggplot(data, aes(x = land, y = yield, fill = land)) +
 ```{r knitr ex11_2 img,echo=FALSE}
 
 # boxplot
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex11_2.png') 
+knitr::include_graphics('./plots/ex11_2.png') 
 ```
 
 ```{r, echo=TRUE}
@@ -994,7 +996,7 @@ print(plt)
 ```{r knitr ex11_3 img,echo=FALSE}
 
 #Table image
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex11_3.png') 
+knitr::include_graphics('./plots/ex11_3.png') 
 ```
 
 ```{r,echo=TRUE}
@@ -1036,7 +1038,7 @@ AIC(strawGenYi_noLand.fit,strawGenYi.fit)
  
 ```{r, echo=TRUE}
 # Load data
-rikz <- read.table("C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/Datasets/RIKZ.txt", header = TRUE, sep = "\t")
+rikz <- read.table("./Datasets/RIKZ.txt", header = TRUE, sep = "\t")
 ```
  
  a) Read in the data set with R. Look at the structure of the data frame you get. Do you need some
@@ -1068,7 +1070,7 @@ qqPlot(resid(rikz_fit), dist = "norm",mean = mean(resid(rikz_fit)), sd = sd(resi
 ```{r knitr ex12_1 img,echo=FALSE}
 
 # check assumptions
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex12_1.png') 
+knitr::include_graphics('./plots/ex12_1.png') 
 ``` 
 
  c) Try to improve the quality of your model from task b) by transforming some of the variables in
@@ -1094,13 +1096,13 @@ qqPlot(resid(rikz_fit), dist = "norm",mean = mean(resid(rikz_fit2)), sd = sd(res
 ```{r knitr ex12_2 img,echo=FALSE}
 
 # check assumptions log transform
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex12_2.png') 
+knitr::include_graphics('./plots/ex12_2.png') 
 ``` 
 
 ```{r knitr ex12_3 img,echo=FALSE}
 
 # check assumptions square root
-knitr::include_graphics('C:/Users/hecto/OneDrive/Escritorio/Master Bioinformatics/2º semester/biostatistics 2/plots/ex12_3.png') 
+knitr::include_graphics('./plots/ex12_3.png') 
 ``` 
 
 Tukey-Anscombe is a little bit more spread out for square compared to log
